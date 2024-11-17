@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Route Optimization Results</h1>
+
+    {% if solution %}
+        <h2>Overall Results</h2>
+        <p>Total Distance: {{ solution.total_distance }} m</p>
+        <p>Total Load: {{ solution.total_load }} kg</p>
+
+        <h2>Detailed Routes</h2>
+        {% for route in solution.routes %}
+            <h3>Vehicle {{ route.vehicle_id }}</h3>
+            <p>Distance: {{ route.route_distance }} m</p>
+            <p>Load: {{ route.route_load }} kg</p>
+            <p>Route:</p>
+            <ul>
+                {% for stop in route.route %}
+                    <li>Location: {{ stop.node }}, Load: {{ stop.load }}</li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    {% endif %}
+
+</body>
+</html>
