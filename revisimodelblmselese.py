@@ -234,3 +234,4 @@ def menghitung_jarak_per_rute(routes, data):
 
     return all_birds_distances
 
+def total_jarak_rute(routes, data, all_birds_distances):
