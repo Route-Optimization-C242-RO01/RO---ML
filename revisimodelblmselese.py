@@ -152,4 +152,4 @@ def mengurutkan_bilangan_permutasi(birds, banyak_birds, banyak_pelanggan):
 
 def pembentukan_rute_vrp(permutasi_birds, data):
     routes = []
-    max_capacity = data
+    max_capacity = data[]
