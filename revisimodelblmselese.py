@@ -203,3 +203,34 @@ def pembentukan_rute_vrp(permutasi_birds, data):
 
     return routes
 
+def menghitung_jarak_per_rute(routes, data):
+    """
+    Menghitung total jarak tempuh setiap rute (kendaraan) untuk setiap bird.
+    """
+    distance_matrix = data["distance_matrix"]  # Matriks jarak
+    all_birds_distances = []  # Menyimpan total jarak tempuh untuk semua birds
+
+    for bird_index, bird_routes in enumerate(routes):  # Iterasi setiap bird
+        bird_distances = []  # Menyimpan jarak total untuk semua rute dalam satu bird
+
+        for route in bird_routes:  # Iterasi setiap rute (kendaraan)
+            total_distance = 0
+
+            # Tambahkan jarak dari depot ke pelanggan pertama
+            if route:
+                total_distance += distance_matrix[0][route[0]]
+
+            # Hitung jarak antar pelanggan dalam rute
+            for i in range(len(route) - 1):
+                total_distance += distance_matrix[route[i]][route[i + 1]]
+
+            # Tambahkan jarak dari pelanggan terakhir kembali ke depot
+            if route:
+                total_distance += distance_matrix[route[-1]][0]
+
+            bird_distances.append(total_distance)  # Simpan jarak total untuk rute ini
+
+        all_birds_distances.append(bird_distances)  # Simpan jarak untuk semua rute dalam bird ini
+
+    return all_birds_distances
+
