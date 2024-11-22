@@ -1,5 +1,8 @@
 import requests
 import numpy as np
+import random
+import math
+
 
 def geocode_addresses(addresses, api_key):
     url = "https://maps.googleapis.com/maps/api/geocode/json"
@@ -9,7 +12,7 @@ def geocode_addresses(addresses, api_key):
     for address in addresses:
         params = {"address": address, "key": api_key}
         response = requests.get(url, params=params)
-        
+
         if response.status_code == 200:
             data = response.json()
             if data['status'] == 'OK':
@@ -31,8 +34,9 @@ def geocode_addresses(addresses, api_key):
                 "address": address,
                 "error": f"HTTP Error: {response.status_code}"
             })
-    
+
     return results, coordinates
+
 
 # Daftar alamat untuk di-geocode
 addresses = [
@@ -61,18 +65,19 @@ for result in geocode_results:
 print("\nKoordinat yang tersimpan:")
 print(coordinates)
 
+
 def calculate_distance_matrix(origins, destinations, api_key, mode="driving"):
     url = "https://maps.googleapis.com/maps/api/distancematrix/json"
     params = {
-        "origins": "|".join(origins),         # Gabungkan origins dengan tanda '|'
-        "destinations": "|".join(destinations), # Gabungkan destinations dengan tanda '|'
+        "origins": "|".join(origins),  # Gabungkan origins dengan tanda '|'
+        "destinations": "|".join(destinations),  # Gabungkan destinations dengan tanda '|'
         "key": api_key,
-        "mode": mode,                       # Mode transportasi: driving, walking, bicycling, transit
+        "mode": mode,  # Mode transportasi: driving, walking, bicycling, transit
         "departure_time": "now"
     }
-    
+
     response = requests.get(url, params=params)
-    
+
     if response.status_code == 200:
         data = response.json()
         if data['status'] == 'OK':
@@ -93,6 +98,7 @@ def calculate_distance_matrix(origins, destinations, api_key, mode="driving"):
     else:
         return None, f"HTTP Error: {response.status_code}"
 
+
 matrix, origins, destinations = calculate_distance_matrix(coordinates, coordinates, api_key)
 
 if matrix:
@@ -100,7 +106,7 @@ if matrix:
     print("Distance Matrix (m):")
     print(" " * 20 + " | ".join(f"{dest[:20]}" for dest in destinations))
     print("-" * (25 + len(destinations) * 25))
-    
+
     # Tampilkan isi matriks
     for origin, row in zip(origins, matrix):
         print(f"{origin[:20]:<20} | " + " | ".join(f"{dist:<10}" for dist in row))
@@ -108,6 +114,7 @@ else:
     print(f"Error: {destinations}")
 
 print(matrix)
+
 
 def create_data_model():
     data = {}
@@ -118,135 +125,31 @@ def create_data_model():
     data["depot"] = 0
     return data
 
-def form_routes_with_warning(demands, capacities):
-    """
-    Membentuk rute awal dengan peringatan jika pelanggan tidak terlayani.
-    """
+
+def membangkitkan_populasi_awal(banyak_birds, banyak_pelanggan):
+    birds = []
+    for i in range(banyak_birds):
+        bird = []
+        for j in range(banyak_pelanggan):
+            bird.append(random.uniform(0, 1))
+        birds.append(bird)
+    return birds
+
+
+def mengurutkan_bilangan_permutasi(birds, banyak_birds, banyak_pelanggan):
+    permutasi_birds = []
+    for i in range(banyak_birds):
+        permutasi_bird = []
+        for j in range(banyak_pelanggan):
+            k = 1
+            for l in range(banyak_pelanggan):
+                if birds[i, j] > birds[i, l]:
+                    k = k + 1
+            permutasi_bird.append(k)
+        permutasi_birds.append(permutasi_bird)
+    return permutasi_birds
+
+
+def pembentukan_rute_vrp(permutasi_birds, data):
     routes = []
-    dropped_customers = []  # Pelanggan yang tidak terlayani
-    served_customers = set()  # Set pelanggan yang sudah dilayani
-    k = 0  # Kendaraan
-    current_route = []
-    current_capacity = capacities[k]
-
-    for customer in range(1, len(demands)):
-        if customer in served_customers:  # Abaikan pelanggan yang sudah dilayani
-            continue
-        if current_capacity >= demands[customer]:
-            current_route.append(customer)
-            current_capacity -= demands[customer]
-            served_customers.add(customer)
-        else:
-            routes.append(current_route)
-            k += 1
-            if k >= len(capacities):  # Jika kendaraan habis, tandai pelanggan yang belum terlayani
-                dropped_customers.append(customer)
-            else:
-                current_route = [customer]
-                current_capacity = capacities[k] - demands[customer]
-                served_customers.add(customer)
-
-    if current_route:  # Tambahkan rute terakhir jika ada
-        routes.append(current_route)
-
-    return routes, dropped_customers
-
-def validate_vehicle_capacities(routes, demands, capacities):
-    """
-    Validasi apakah total permintaan pelanggan dalam rute kendaraan melebihi kapasitas.
-    """
-    warnings = []
-    for vehicle, route in enumerate(routes):
-        total_demand = sum(demands[customer] for customer in route)
-        if total_demand > capacities[vehicle]:
-            warnings.append(
-                f"Kendaraan {vehicle + 1}: Total permintaan pelanggan ({total_demand}) "
-                f"melebihi kapasitas kendaraan ({capacities[vehicle]})."
-            )
-    return warnings
-
-def levy_flight(routes, demands, capacities):
-    """
-    Menghasilkan rute baru menggunakan mekanisme Levy Flight dengan validasi unik pelanggan.
-    """
-    new_routes = [route.copy() for route in routes]
-    # Pilih dua rute secara acak
-    if len(new_routes) > 1:
-        route1, route2 = np.random.choice(len(new_routes), 2, replace=False)
-        # Tukar pelanggan secara acak antara dua rute
-        if new_routes[route1] and new_routes[route2]:
-            idx1 = np.random.randint(len(new_routes[route1]))
-            idx2 = np.random.randint(len(new_routes[route2]))
-            if new_routes[route2][idx2] not in new_routes[route1]:
-                new_routes[route1][idx1], new_routes[route2][idx2] = (
-                    new_routes[route2][idx2],
-                    new_routes[route1][idx1],
-                )
-    return new_routes
-
-def calculate_route_distance(routes, distance_matrix):
-    """
-    Menghitung jarak total per rute kendaraan.
-    """
-    total_distance = 0
-    for route in routes:
-        route_distance = 0
-        prev_location = 0  # Mulai dari depot
-        for customer in route:
-            route_distance += distance_matrix[prev_location][customer]
-            prev_location = customer
-        route_distance += distance_matrix[prev_location][0]  # Kembali ke depot
-        total_distance += route_distance
-    return total_distance
-
-def cuckoo_search_vrp(data, birds=10, discovery_rate=0.25, iterations=100):
-    """
-    Implementasi algoritma Cuckoo Search untuk VRP.
-    """
-    distance_matrix = data["distance_matrix"]
-    demands = data["demands"]
-    capacities = data["vehicle_capacities"]
-
-    # Inisialisasi populasi solusi awal
-    population = []
-    dropped_customers_list = []
-    for _ in range(birds):
-        routes, dropped_customers = form_routes_with_warning(demands, capacities)
-        population.append(routes)
-        dropped_customers_list.append(dropped_customers)
-    
-    fitness = [calculate_route_distance(sol, distance_matrix) for sol in population]
-
-    # Iterasi algoritma
-    for iteration in range(1, iterations + 1):
-        for i in range(birds):
-            new_solution = levy_flight(population[i], demands, capacities)
-            new_fitness = calculate_route_distance(new_solution, distance_matrix)
-            if new_fitness < fitness[i]:
-                population[i] = new_solution
-                fitness[i] = new_fitness
-
-        # Replace beberapa solusi secara acak
-        num_replace = int(discovery_rate * birds)
-        for _ in range(num_replace):
-            idx = np.random.randint(birds)
-            routes, dropped_customers = form_routes_with_warning(demands, capacities)
-            population[idx] = routes
-            fitness[idx] = calculate_route_distance(routes, distance_matrix)
-            dropped_customers_list[idx] = dropped_customers
-
-    # Cari solusi terbaik
-    best_idx = np.argmin(fitness)
-    best_solution = population[best_idx]
-    best_distance = fitness[best_idx]
-
-    return best_solution, best_distance
-
-data = create_data_model()
-best_solution, best_distance = cuckoo_search_vrp(data)
-print("\nHasil Akhir:")
-print("Solusi terbaik (rute kendaraan):")
-for vehicle, route in enumerate(best_solution):
-    print(f"  Kendaraan {vehicle + 1}: {route}")
-print(f"Jarak total terbaik: {best_distance} km")
-
+    max_capacity =
