@@ -152,4 +152,54 @@ def mengurutkan_bilangan_permutasi(birds, banyak_birds, banyak_pelanggan):
 
 def pembentukan_rute_vrp(permutasi_birds, data):
     routes = []
-    max_capacity = data[]
+    max_capacity = data["vehicle_capacities"]
+    num_vehicles = data["num_vehicles"]  # Jumlah kendaraan yang tersedia
+    demands = data["demands"]  # Permintaan pelanggan
+
+    for bird_index, permutasi_bird in enumerate(permutasi_birds):
+        bird_routes = []  # Rute untuk satu bird
+        current_route = []  # Rute sementara
+        current_capacity = 0  # Kapasitas sementara
+        vehicle_count = 1  # Kendaraan pertama
+        visited_customers = set()  # Melacak pelanggan yang sudah dikunjungi
+
+        for customer_index in permutasi_bird:
+            # Jika pelanggan sudah dikunjungi, lewati
+            if customer_index in visited_customers:
+                continue
+
+            # Tambahkan permintaan pelanggan ke rute saat ini
+            demand = demands[customer_index]
+            if current_capacity + demand > max_capacity:
+                # Simpan rute jika kapasitas terlampaui atau kendaraan habis
+                bird_routes.append(current_route)
+                current_route = []  # Reset rute sementara
+                current_capacity = 0  # Reset kapasitas
+                vehicle_count += 1  # Gunakan kendaraan baru
+
+                # Periksa jika kendaraan tidak cukup
+                if vehicle_count > num_vehicles:
+                    break
+
+            # Tambahkan pelanggan ke rute saat ini
+            current_route.append(customer_index)
+            current_capacity += demand
+            visited_customers.add(customer_index)  # Tandai pelanggan sebagai dikunjungi
+
+        # Simpan rute terakhir jika masih ada pelanggan
+        if current_route:
+            bird_routes.append(current_route)
+
+        # Periksa jika ada pelanggan yang belum dikunjungi
+        remaining_customers = set(range(1, len(data["demands"]))) - visited_customers
+        for customer in remaining_customers:
+            # Tambahkan pelanggan yang belum dikunjungi ke rute baru
+            if len(bird_routes) < num_vehicles:
+                bird_routes.append([customer])
+            else:
+                bird_routes[-1].append(customer)  # Tambahkan ke rute terakhir jika kendaraan penuh
+
+        routes.append(bird_routes)  # Simpan rute hawk ini
+
+    return routes
+
