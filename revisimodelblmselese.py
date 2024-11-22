@@ -285,6 +285,42 @@ def update_positions(position, discovery_rate, min_values, max_values, objective
     updated_position[:, -1] = [objective_function(np.argsort(bird[:-1]).astype(int) + 1) for bird in updated_position]
     return updated_position
 
+def cetak_hasil(routes, data, all_birds_distances):
+    """
+    Mencetak rute per kendaraan dan statistik seperti total jarak dan load.
+    Jika kendaraan melebihi kapasitas, tampilkan alert di bawah kendaraan tersebut.
+    """
+    demands = data["demands"]
+    total_distance = 0
+    total_load = 0
+    max_capacity = data["vehicle_capacities"]
+
+    print("\n=== Hasil Rute ===")
+    for vehicle_idx, (route, distances) in enumerate(zip(routes, all_birds_distances[0])):
+        route_distance = distances  # Total jarak untuk kendaraan ini
+        route_load = sum(demands[customer] for customer in route if customer != data["depot"])
+        total_distance += route_distance
+        total_load += route_load
+
+        # Tampilkan rute untuk kendaraan ini (dengan depot di awal dan akhir)
+        route_str = " -> ".join(
+            f"{customer} Load({demands[customer]})" if customer != data["depot"] else f"{customer} Load(0)"
+            for customer in [data["depot"]] + route + [data["depot"]]
+        )
+        print(f"Route for vehicle {vehicle_idx}:")
+        print(f"  {route_str}")
+        print(f"  Distance of the route: {route_distance:.2f}m")
+        print(f"  Load of the route: {route_load}")
+
+        # Jika load kendaraan melebihi kapasitas, tampilkan alert
+        if route_load > max_capacity:
+            print(f"  **ALERT**: Kapasitas kendaraan {vehicle_idx} ({route_load}) melebihi maksimum ({max_capacity})!")
+
+    print(f"\nTotal Distance of all routes: {total_distance:.2f}m")
+    print(f"Total Load of all routes: {total_load}")
+
+
+
 
 # Fungsi Utama: VRP Cuckoo Search
 def vrp_cuckoo_search(data, birds=10, iterations=100, alpha_value=0.01, lambda_value=1.5, discovery_rate=0.25):
@@ -303,7 +339,16 @@ def vrp_cuckoo_search(data, birds=10, iterations=100, alpha_value=0.01, lambda_v
 
     best_individual = population[population[:, -1].argsort()][0, :]
     for count in range(iterations):
-        print(f"Iterasi {count + 1}: Total Jarak = {best_individual[-1]}")
+        print(f"\n=== Iterasi {count + 1} ===")
+        print(f"Total Jarak (Fitness): {best_individual[-1]}")
+
+        # Cetak rute per kendaraan dari solusi terbaik saat ini
+        best_permutation = [int(p) + 1 for p in np.argsort(best_individual[:-1])]
+        routes = pembentukan_rute_vrp([best_permutation], data)[0]
+        all_birds_distances = menghitung_jarak_per_rute([routes], data)
+        cetak_hasil(routes, data, all_birds_distances)
+
+        # Lévy flights dan replace bird
         for _ in range(birds):
             population = replace_bird(population, alpha_value, lambda_value, [0] * banyak_pelanggan, [1] * banyak_pelanggan, objective_function)
         population = update_positions(population, discovery_rate, [0] * banyak_pelanggan, [1] * banyak_pelanggan, objective_function)
@@ -311,15 +356,21 @@ def vrp_cuckoo_search(data, birds=10, iterations=100, alpha_value=0.01, lambda_v
         if best_individual[-1] > current_best[-1]:
             best_individual = np.copy(current_best)
 
+    # Solusi terbaik di akhir iterasi
     best_permutation = [int(p) + 1 for p in np.argsort(best_individual[:-1])]
     best_distance = best_individual[-1]
-    return best_permutation, best_distance
+    final_routes = pembentukan_rute_vrp([best_permutation], data)[0]
+    final_all_birds_distances = menghitung_jarak_per_rute([final_routes], data)
+    cetak_hasil(final_routes, data, final_all_birds_distances)
+    return best_permutation, best_distance, final_routes
 
 def main():
     geocode_addresses(addresses, api_key)
     calculate_distance_matrix(origins, destinations, api_key, mode="driving")
     data = create_data_model()
-    best_solution, best_distance = vrp_cuckoo_search(data, birds=10, iterations=100, alpha_value=0.01, lambda_value=1.5, discovery_rate=0.25)
+    best_solution, best_distance, final_routes = vrp_cuckoo_search(
+        data, birds=10, iterations=100, alpha_value=0.01, lambda_value=1.5, discovery_rate=0.25
+    )
     print("\n=== Hasil Akhir ===")
     print("Solusi Terbaik (Rute):", best_solution)
     print("Total Jarak (Fitness):", best_distance)
