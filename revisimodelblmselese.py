@@ -120,7 +120,7 @@ def create_data_model():
     data = {}
     data['distance_matrix'] = matrix
     data['demands'] = [0, 5, 8, 3, 7, 4]
-    data["vehicle_capacities"] = [10, 10, 10]
+    data["vehicle_capacities"] = 10
     data["num_vehicles"] = 3
     data["depot"] = 0
     return data
@@ -143,7 +143,7 @@ def mengurutkan_bilangan_permutasi(birds, banyak_birds, banyak_pelanggan):
         for j in range(banyak_pelanggan):
             k = 1
             for l in range(banyak_pelanggan):
-                if birds[i, j] > birds[i, l]:
+                if birds[i][j] > birds[i][l]:
                     k = k + 1
             permutasi_bird.append(k)
         permutasi_birds.append(permutasi_bird)
@@ -199,7 +199,7 @@ def pembentukan_rute_vrp(permutasi_birds, data):
             else:
                 bird_routes[-1].append(customer)  # Tambahkan ke rute terakhir jika kendaraan penuh
 
-        routes.append(bird_routes)  # Simpan rute hawk ini
+        routes.append(bird_routes)  # Simpan rute bird ini
 
     return routes
 
@@ -234,4 +234,96 @@ def menghitung_jarak_per_rute(routes, data):
 
     return all_birds_distances
 
-def total_jarak_rute(routes, data, all_birds_distances):
+def menghitung_jarak_total_birds(all_birds_distances):
+    """
+    Menghitung total jarak tempuh untuk setiap birds (fungsi tujuan).
+    """
+    total_distances = []  # Menyimpan jarak total untuk setiap birds
+
+    for bird_distances in all_birds_distances:  # Iterasi setiap bird
+        total_distance = sum(bird_distances)  # Total jarak adalah penjumlahan jarak semua rute
+        total_distances.append(total_distance)  # Simpan total jarak untuk bird ini
+
+    return total_distances
+
+# Fungsi: Lévy Flight
+def levy_flight(mean):
+    u1 = np.random.uniform(-0.5 * np.pi, 0.5 * np.pi)
+    u2 = np.random.uniform(-0.5 * np.pi, 0.5 * np.pi)
+    v = np.random.uniform(0.0, 1.0)
+    x1 = np.sin((mean - 1.0) * u1) / np.power(np.cos(u1), 1.0 / (mean - 1.0))
+    x2 = np.power(np.cos((2.0 - mean) * u2) / (-np.log(v)), (2.0 - mean) / (mean - 1.0))
+    return x1 * x2
+
+
+# Fungsi: Replace Bird
+def replace_bird(position, alpha_value, lambda_value, min_values, max_values, objective_function):
+    random_bird = np.random.randint(position.shape[0])
+    levy_values = levy_flight(lambda_value)
+    new_solution = np.copy(position[random_bird, :-1])
+    rand_factors = np.random.rand(len(min_values))
+    new_solution = np.clip(new_solution + alpha_value * levy_values * new_solution * rand_factors, min_values, max_values)
+    new_fitness = objective_function(np.argsort(new_solution).astype(int) + 1)
+    if new_fitness < position[random_bird, -1]:
+        position[random_bird, :-1] = new_solution
+        position[random_bird, -1] = new_fitness
+    return position
+
+
+# Fungsi: Update Positions
+def update_positions(position, discovery_rate, min_values, max_values, objective_function):
+    updated_position = np.copy(position)
+    abandoned_nests = int(np.ceil(discovery_rate * position.shape[0])) + 1
+    fitness_values = position[:, -1]
+    nest_list = np.argsort(fitness_values)[-abandoned_nests:]
+    random_birds = np.random.choice(position.shape[0], size=2, replace=False)
+    bird_j, bird_k = random_birds
+    for i in nest_list:
+        rand = np.random.rand(updated_position.shape[1] - 1)
+        if np.random.rand() > discovery_rate:
+            updated_position[i, :-1] = np.clip(updated_position[i, :-1] + rand * (updated_position[bird_j, :-1] - updated_position[bird_k, :-1]), min_values, max_values)
+    updated_position[:, -1] = [objective_function(np.argsort(bird[:-1]).astype(int) + 1) for bird in updated_position]
+    return updated_position
+
+
+# Fungsi Utama: VRP Cuckoo Search
+def vrp_cuckoo_search(data, birds=10, iterations=100, alpha_value=0.01, lambda_value=1.5, discovery_rate=0.25):
+    banyak_pelanggan = len(data['demands']) - 1
+    birds_population = membangkitkan_populasi_awal(birds, banyak_pelanggan)
+    permutasi_birds = mengurutkan_bilangan_permutasi(birds_population, birds, banyak_pelanggan)
+
+    def objective_function(permutasi):
+        routes = pembentukan_rute_vrp([permutasi], data)
+        all_birds_distances = menghitung_jarak_per_rute(routes, data)
+        total_distances = menghitung_jarak_total_birds(all_birds_distances)
+        return total_distances[0]
+
+    fitness_values = [objective_function(permutasi) for permutasi in permutasi_birds]
+    population = np.hstack([np.array(birds_population), np.array(fitness_values)[:, np.newaxis]])
+
+    best_individual = population[population[:, -1].argsort()][0, :]
+    for count in range(iterations):
+        print(f"Iterasi {count + 1}: Total Jarak = {best_individual[-1]}")
+        for _ in range(birds):
+            population = replace_bird(population, alpha_value, lambda_value, [0] * banyak_pelanggan, [1] * banyak_pelanggan, objective_function)
+        population = update_positions(population, discovery_rate, [0] * banyak_pelanggan, [1] * banyak_pelanggan, objective_function)
+        current_best = population[population[:, -1].argsort()][0, :]
+        if best_individual[-1] > current_best[-1]:
+            best_individual = np.copy(current_best)
+
+    best_permutation = [int(p) + 1 for p in np.argsort(best_individual[:-1])]
+    best_distance = best_individual[-1]
+    return best_permutation, best_distance
+
+def main():
+    geocode_addresses(addresses, api_key)
+    calculate_distance_matrix(origins, destinations, api_key, mode="driving")
+    data = create_data_model()
+    best_solution, best_distance = vrp_cuckoo_search(data, birds=10, iterations=100, alpha_value=0.01, lambda_value=1.5, discovery_rate=0.25)
+    print("\n=== Hasil Akhir ===")
+    print("Solusi Terbaik (Rute):", best_solution)
+    print("Total Jarak (Fitness):", best_distance)
+
+if __name__ == "__main__":
+    main()
+
