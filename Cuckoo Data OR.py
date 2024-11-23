@@ -215,14 +215,14 @@ def cetak_hasil(routes, data, all_birds_distances):
             f"{customer} Load({demands[customer]})" if customer != data["depot"] else f"{customer} Load(0)"
             for customer in [data["depot"]] + route + [data["depot"]]
         )
-        print(f"Route for vehicle {vehicle_idx}:")
+        print(f"Route for vehicle {vehicle_idx + 1}:")
         print(f"  {route_str}")
         print(f"  Distance of the route: {route_distance:.2f}m")
         print(f"  Load of the route: {route_load}")
 
         # Jika load kendaraan melebihi kapasitas, tampilkan alert
         if route_load > max_capacity:
-            print(f"  **ALERT**: Kapasitas kendaraan {vehicle_idx} ({route_load}) melebihi maksimum ({max_capacity})!")
+            print(f"  **ALERT**: Kapasitas kendaraan {vehicle_idx + 1} ({route_load}) melebihi maksimum ({max_capacity})!")
 
     print(f"\nTotal Distance of all routes: {total_distance:.2f}m")
     print(f"Total Load of all routes: {total_load}")
