@@ -254,7 +254,6 @@ def vrp_cuckoo_search(data, birds, iterations, alpha_value, lambda_value, discov
         best_permutation = [int(p) + 1 for p in np.argsort(best_individual[:-1])]
         routes = pembentukan_rute_vrp([best_permutation], data)[0]
         all_birds_distances = menghitung_jarak_per_rute([routes], data)
-        cetak_hasil(routes, data, all_birds_distances)
 
         # Lévy flights dan replace bird
         for _ in range(birds):
