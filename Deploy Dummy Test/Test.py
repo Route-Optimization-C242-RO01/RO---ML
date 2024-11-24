@@ -355,7 +355,7 @@ def vrp_cuckoo_search(data, birds=10, iterations=100, alpha_value=0.01, lambda_v
     return best_permutation, best_distance, final_routes
 
 
-@app.route('/api/Solution', methods=['GET'])
+@app.route('/api/Solution', methods=['POST'])
 def get_solution():
     # Mendapatkan data JSON dari request
     file_name = 'dummy.json'
