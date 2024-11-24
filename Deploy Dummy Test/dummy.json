@@ -1,0 +1,75 @@
+{
+    "Number_of_vehicles": 4,
+    "data": [
+        {
+            "Street": "Jl. Merdeka No.1",
+            "City": "Jakarta",
+            "Province": "DKI Jakarta",
+            "Kg": "50",
+            "Postal_code": "10110"
+        },
+        {
+            "Street": "Jl. Sudirman No.10",
+            "City": "Bandung",
+            "Province": "Jawa Barat",
+            "Kg": "30",
+            "Postal_code": "40111"
+        },
+        {
+            "Street": "Jl. Malioboro No.15",
+            "City": "Yogyakarta",
+            "Province": "DI Yogyakarta",
+            "Kg": "40",
+            "Postal_code": "55271"
+        },
+        {
+            "Street": "Jl. Ahmad Yani No.25",
+            "City": "Surabaya",
+            "Province": "Jawa Timur",
+            "Kg": "60",
+            "Postal_code": "60234"
+        },
+        {
+            "Street": "Jl. Gajah Mada No.8",
+            "City": "Semarang",
+            "Province": "Jawa Tengah",
+            "Kg": "45",
+            "Postal_code": "50133"
+        },
+        {
+            "Street": "Jl. Imam Bonjol No.12",
+            "City": "Denpasar",
+            "Province": "Bali",
+            "Kg": "35",
+            "Postal_code": "80119"
+        },
+        {
+            "Street": "Jl. Hasanuddin No.20",
+            "City": "Makassar",
+            "Province": "Sulawesi Selatan",
+            "Kg": "55",
+            "Postal_code": "90135"
+        },
+        {
+            "Street": "Jl. Diponegoro No.30",
+            "City": "Medan",
+            "Province": "Sumatera Utara",
+            "Kg": "25",
+            "Postal_code": "20235"
+        },
+        {
+            "Street": "Jl. Panglima Polim No.5",
+            "City": "Banjarmasin",
+            "Province": "Kalimantan Selatan",
+            "Kg": "40",
+            "Postal_code": "70114"
+        },
+        {
+            "Street": "Jl. Pattimura No.18",
+            "City": "Ambon",
+            "Province": "Maluku",
+            "Kg": "30",
+            "Postal_code": "97124"
+        }
+    ]
+}
