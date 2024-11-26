@@ -390,7 +390,7 @@ def get_solution():
         data = {}
         data['distance_matrix'] = matrix
         data['demands'] = Kapasitas
-        data["vehicle_capacities"] = 500  # Ini disesuaikan
+        data["vehicle_capacities"] = 120  # Ini disesuaikan
         data["num_vehicles"] = Banyak_Kendaraan
         data["depot"] = 0
         return data
@@ -405,19 +405,20 @@ def get_solution():
     # Mengonversi solusi ke format JSON yang bisa dikembalikan
     Kendaraan = 0
     Hasil = {}
-    depot_location = {
-        "latitude": Latitude[0],
-        "longitude": Longitude[0],
-        "street": Nama_Jalan[0],
-        "city": Kota[0],
-        "province": Provinsi[0],
-        "postal_code": Kode_Pos[0]
-    }
-
     for sol in final_routes:
         Kendaraan += 1
         Rute = []
-        Rute.append(depot_location)
+
+        Rute.append({
+            "latitude": Latitude[0],
+            "longitude": Longitude[0],
+            "street": Nama_Jalan[0],
+            "city": Kota[0],
+            "province": Provinsi[0],
+            "postal_code": Kode_Pos[0],
+            "demand": Kapasitas[0]
+        })
+
         for pelanggan in sol:
             Location_Data = {
                 "latitude": Latitude[pelanggan],
@@ -425,10 +426,19 @@ def get_solution():
                 "street": Nama_Jalan[pelanggan],
                 "city": Kota[pelanggan],
                 "province": Provinsi[pelanggan],
-                "postal_code": Kode_Pos[pelanggan]
+                "postal_code": Kode_Pos[pelanggan],
+                "demand": Kapasitas[pelanggan]
             }
             Rute.append(Location_Data)
-        Rute.append(depot_location)
+        Rute.append({
+            "latitude": Latitude[0],
+            "longitude": Longitude[0],
+            "street": Nama_Jalan[0],
+            "city": Kota[0],
+            "province": Provinsi[0],
+            "postal_code": Kode_Pos[0],
+            "demand": Kapasitas[0]
+        })
         Hasil[f"Kendaraan{Kendaraan}"] = Rute
 
     solution = OrderedDict({
