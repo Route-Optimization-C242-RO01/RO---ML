@@ -379,7 +379,7 @@ def get_solution():
         data = {}
         data['distance_matrix'] = matrix
         data['demands'] = Kapasitas
-        data["vehicle_capacities"] = 10  # Ini disesuaikan
+        data["vehicle_capacities"] = 500  # Ini disesuaikan
         data["num_vehicles"] = Banyak_Kendaraan
         data["depot"] = 0
         return data
