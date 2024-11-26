@@ -17,7 +17,7 @@ def Convert_Json(data_json):
     Kapasitas = [int(item.get('Kg', 0)) for item in data_json['data']]
     Kode_Pos = [item.get('Postal_Code', '') for item in data_json['data']]
     Banyak_Kendaraan = data_json['Number_of_vehicles']
-
+    Kapasitas[0] = 0
     Addresses = [f"{a},{b},{c}" for a, b, c in zip(Nama_Jalan, Kota, Provinsi)]
     return Addresses, Kapasitas, Banyak_Kendaraan, Nama_Jalan, Kota, Provinsi, Kode_Pos
 
