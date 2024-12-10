@@ -321,7 +321,7 @@ def cetak_hasil(routes, data, all_birds_distances):
 
 
 # Fungsi Utama: VRP Cuckoo Search
-def vrp_cuckoo_search(data, birds=10, iterations=100, alpha_value=0.01, lambda_value=1.5, discovery_rate=0.25):
+def vrp_cuckoo_search(data, birds=30, iterations=500, alpha_value=0.01, lambda_value=1.5, discovery_rate=0.25):
     banyak_pelanggan = len(data['demands']) - 1
     birds_population = membangkitkan_populasi_awal(birds, banyak_pelanggan)
     permutasi_birds = mengurutkan_bilangan_permutasi(birds_population, birds, banyak_pelanggan)
@@ -377,7 +377,7 @@ def get_solution():
     addresses, Kapasitas, Banyak_Kendaraan, Nama_Jalan, Kota, Provinsi, Kode_Pos = Convert_Json(data_input)
 
     # API Key Anda
-    api_key = "AIzaSyB1byYrh8YOO9uLcnQMjUOSN8AjTTiOw58"
+    api_key = "AIzaSyDgWrhg186w9dHMUL0RiDlHaDVSWu07J0k"
 
     # Geocoding
     geocode_results, coordinates, Latitude, Longitude = geocode_addresses(addresses, api_key)
@@ -399,7 +399,7 @@ def get_solution():
 
     # Optimalisasi VRP dengan Cuckoo Search
     best_solution, best_distance, final_routes = vrp_cuckoo_search(
-        data, birds=10, iterations=100, alpha_value=0.01, lambda_value=1.5, discovery_rate=0.25
+        data, birds=30, iterations=500, alpha_value=0.01, lambda_value=1.5, discovery_rate=0.25
     )
 
     # Mengonversi solusi ke format JSON yang bisa dikembalikan
